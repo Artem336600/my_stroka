@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Максимальное количество отображаемых результатов
     const maxDisplayResults = 6;
     
+    // Переменная для числа результатов при совпадении тегов
+    let maxDisplayResultsForTagMatch = maxDisplayResults;
+    
     // Демо-данные пользователей (в реальном приложении это пришло бы с сервера)
     const users = [
         {
@@ -85,6 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterButton = document.querySelector('.filter-btn');
     const filterModal = document.getElementById('filterModal');
     const closeModalButtons = document.querySelectorAll('.close-modal');
+    const noResultsMessage = document.getElementById('no-results-message');
     
     // Регистрация через Telegram
     const registerBtn = document.getElementById('registerBtn');
@@ -601,95 +605,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleSearchInput() {
         const query = searchInput.value.trim().toLowerCase();
         
-        if (query.length < 2) {
-            searchSuggestions.innerHTML = '';
-            searchSuggestions.style.display = 'none';
-            return;
-        }
-        
-        // Формируем общий список интересов для подсказок
-        const allInterests = [...new Set(users.flatMap(user => user.interests))];
-        
-        // Находим совпадения по пользователям
-        const matchingUsers = users.filter(user => 
-            user.name.toLowerCase().includes(query) || 
-            user.location.toLowerCase().includes(query) ||
-            user.interests.some(interest => interest.toLowerCase().includes(query))
-        ).slice(0, 3);
-        
-        // Находим совпадения по интересам
-        const matchingInterests = allInterests
-            .filter(interest => interest.toLowerCase().includes(query))
-            .slice(0, 3);
-        
-        // Отображаем подсказки
-        let suggestionsHTML = '';
-        
-        // Добавляем подсказки по интересам
-        if (matchingInterests.length > 0) {
-            suggestionsHTML += '<div class="suggestion-category">Интересы</div>';
-            matchingInterests.forEach(interest => {
-                suggestionsHTML += `
-                    <div class="search-suggestion-item interest-suggestion" data-interest="${interest}">
-                        <i class="fa-solid fa-tag suggestion-icon"></i>
-                        <div class="suggestion-details">
-                            <div class="suggestion-name">${interest}</div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-        
-        // Добавляем подсказки по пользователям
-        if (matchingUsers.length > 0) {
-            suggestionsHTML += '<div class="suggestion-category">Люди</div>';
-            matchingUsers.forEach(user => {
-                suggestionsHTML += `
-                    <div class="search-suggestion-item user-suggestion" data-id="${user.id}">
-                        <img src="${user.avatar}" alt="${user.name}" class="suggestion-avatar">
-                        <div class="suggestion-details">
-                            <div class="suggestion-name">${user.name}</div>
-                            <div class="suggestion-location">${user.location}</div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-        
-        if (suggestionsHTML) {
-            searchSuggestions.innerHTML = suggestionsHTML;
-            
-            // Добавляем обработчики для подсказок пользователей
-            const userSuggestionItems = searchSuggestions.querySelectorAll('.user-suggestion');
-            userSuggestionItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    const userId = parseInt(this.getAttribute('data-id'));
-                    const user = users.find(u => u.id === userId);
-                    
-                    if (user) {
-                        showUserProfile(user);
-                        searchSuggestions.style.display = 'none';
-                        searchInput.value = '';
-                    }
-                });
-            });
-            
-            // Добавляем обработчики для подсказок интересов
-            const interestSuggestionItems = searchSuggestions.querySelectorAll('.interest-suggestion');
-            interestSuggestionItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    const interest = this.getAttribute('data-interest');
-                    searchInput.value = interest;
-                    searchSuggestions.style.display = 'none';
-                    performSearch();
-                });
-            });
-            
-            searchSuggestions.style.display = 'block';
-        } else {
-            searchSuggestions.innerHTML = '';
-            searchSuggestions.style.display = 'none';
-        }
+        // Отключаем функциональность подсказок
+        searchSuggestions.innerHTML = '';
+        searchSuggestions.style.display = 'none';
     }
     
     // Выполнение поиска
@@ -952,186 +870,38 @@ document.addEventListener('DOMContentLoaded', function() {
             const extractedTags = localExtractTags(query);
             console.log('Извлеченные локально теги:', extractedTags);
             
-            // Добавляем найденные теги в hero секцию
-            const heroContent = document.querySelector('.hero-content');
-            if (heroContent) {
-                // Создаем блок для тегов в hero секции
-                const heroTagsContainer = document.createElement('div');
-                heroTagsContainer.className = 'popular-tags improved-tags';
-                
-                // Добавляем заголовок и теги
-                let heroTagsHTML = '<div class="tags-header"><span class="tag-label">Найденные теги:</span>';
-                
-                // Добавляем кнопку добавления нового тега
-                heroTagsHTML += `<button class="add-tag-btn" title="Добавить тег" style="display: flex; align-items: center; justify-content: center; font-size: 16px; background-color: var(--primary-color); color: white; border-radius: 50%; width: 30px; height: 30px; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.2); cursor: pointer;"><i class="fa-solid fa-plus"></i></button></div>`;
-                
-                // Добавляем контейнер для тегов
-                heroTagsHTML += '<div class="tags-wrapper">';
-                
-                // Добавляем найденные теги
-                extractedTags.forEach(tag => {
-                    heroTagsHTML += `
-                    <div class="tag-container">
-                        <a href="#" class="tag">${tag}</a>
-                        <button class="remove-tag-btn" title="Удалить тег"><i class="fa-solid fa-times"></i></button>
-                    </div>`;
-                });
-                
-                // Закрываем контейнер для тегов
-                heroTagsHTML += '</div>';
-                
-                // Создаем форму для добавления нового тега
-                heroTagsHTML += `
-                <div class="add-tag-form" style="display: none;">
-                    <input type="text" class="tag-input" placeholder="Введите тег...">
-                    <button class="btn btn-small btn-filled confirm-add-tag">Добавить</button>
-                    <button class="btn btn-small btn-outline cancel-add-tag">Отмена</button>
-                </div>`;
-                
-                heroTagsContainer.innerHTML = heroTagsHTML;
-                
-                // Добавляем в DOM
-                heroContent.appendChild(heroTagsContainer);
-                
-                // Добавляем обработчики для тегов
-                heroTagsContainer.querySelectorAll('.tag').forEach(tagElement => {
-                    tagElement.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        searchInput.value = this.textContent;
-                        performSearch();
-                    });
-                });
-                
-                // Добавляем обработчик для кнопки добавления тега
-                const addTagBtn = heroTagsContainer.querySelector('.add-tag-btn');
-                const addTagForm = heroTagsContainer.querySelector('.add-tag-form');
-                
-                if (addTagBtn && addTagForm) {
-                    // Делаем кнопку добавления тега более заметной при наведении
-                    addTagBtn.addEventListener('mouseover', function() {
-                        this.style.transform = 'scale(1.1)';
-                        this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
-                    });
-                    
-                    addTagBtn.addEventListener('mouseout', function() {
-                        this.style.transform = 'scale(1)';
-                        this.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-                    });
-                    
-                    addTagBtn.addEventListener('click', function() {
-                        // Показываем форму выбора тега
-                        addTagForm.style.display = 'block';
-                        
-                        // Получаем список тегов и контейнер для их отображения
-                        const tagsList = addTagForm.querySelector('.tags-list');
-                        if (!tagsList) return;
-                        
-                        // Очищаем список тегов
-                        tagsList.innerHTML = '';
-                        
-                        // Получаем текущие активные теги
-                        const currentTags = getActiveTags();
-                        
-                        // Заполняем список всеми доступными тегами
-                        populateTagsList(tagsList, 'all', currentTags);
-                        
-                        // Добавляем обработчики для категорий тегов
-                        const categories = addTagForm.querySelectorAll('.tag-category');
-                        categories.forEach(category => {
-                            category.addEventListener('click', function() {
-                                // Удаляем класс active у всех категорий
-                                categories.forEach(c => c.classList.remove('active'));
-                                // Добавляем класс active текущей категории
-                                this.classList.add('active');
-                                // Обновляем список тегов
-                                populateTagsList(tagsList, this.dataset.category, currentTags);
-                            });
-                        });
-                    });
-                    
-                    // Обработчик для кнопки отмены добавления тега
-                    const cancelAddTagBtn = addTagForm.querySelector('.cancel-add-tag');
-                    if (cancelAddTagBtn) {
-                        cancelAddTagBtn.addEventListener('click', function() {
-                            addTagForm.style.display = 'none';
-                            addTagForm.querySelector('.tag-input').value = '';
-                        });
-                    }
-                    
-                    // Обработчик для кнопки подтверждения добавления тега
-                    const confirmAddTagBtn = addTagForm.querySelector('.confirm-add-tag');
-                    if (confirmAddTagBtn) {
-                        confirmAddTagBtn.addEventListener('click', function() {
-                            const tagInput = addTagForm.querySelector('.tag-input');
-                            if (tagInput && tagInput.value.trim()) {
-                                const newTag = tagInput.value.trim();
-                                
-                                // Создаем новый элемент тега
-                                const tagsWrapper = heroTagsContainer.querySelector('.tags-wrapper');
-                                if (tagsWrapper) {
-                                    const newTagContainer = document.createElement('div');
-                                    newTagContainer.className = 'tag-container';
-                                    newTagContainer.innerHTML = `
-                                        <a href="#" class="tag">${newTag}</a>
-                                        <button class="remove-tag-btn" title="Удалить тег"><i class="fa-solid fa-times"></i></button>
-                                    `;
-                                    
-                                    // Добавляем обработчик на клик по тегу
-                                    const tagLink = newTagContainer.querySelector('.tag');
-                                    tagLink.addEventListener('click', function(e) {
-                                        e.preventDefault();
-                                        searchInput.value = this.textContent;
-                                        performSearch();
-                                    });
-                                    
-                                    // Добавляем обработчик на кнопку удаления
-                                    const removeBtn = newTagContainer.querySelector('.remove-tag-btn');
-                                    removeBtn.addEventListener('click', function() {
-                                        newTagContainer.remove();
-                                        // Перезапускаем поиск с обновленными тегами
-                                        filterResultsByActiveTags(query, getActiveTags());
-                                    });
-                                    
-                                    // Добавляем тег в DOM
-                                    tagsWrapper.appendChild(newTagContainer);
-                                    
-                                    // Перезапускаем поиск с обновленными тегами
-                                    filterResultsByActiveTags(query, getActiveTags());
-                                }
-                                
-                                // Сбрасываем форму
-                                tagInput.value = '';
-                                addTagForm.style.display = 'none';
-                            }
-                        });
-                    }
-                }
-                
-                // Добавляем обработчики для кнопок удаления тегов
-                heroTagsContainer.querySelectorAll('.remove-tag-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        // Удаляем контейнер тега
-                        const tagContainer = this.closest('.tag-container');
-                        if (tagContainer) {
-                            tagContainer.remove();
-                            // Перезапускаем поиск с обновленными тегами
-                            filterResultsByActiveTags(query, getActiveTags());
-                        }
-                    });
-                });
+            // Скрываем индикатор загрузки
+            const loadingContainer = document.querySelector('.loading-container');
+            if (loadingContainer) {
+                loadingContainer.style.display = 'none';
             }
             
-            // Фильтруем результаты с задержкой для эффекта
-            setTimeout(() => {
-                // Скрываем индикатор загрузки
-                const loadingContainer = document.querySelector('.loading-container');
-                if (loadingContainer) {
-                    loadingContainer.style.display = 'none';
+            // Увеличиваем лимит отображаемых результатов
+            if (extractedTags && extractedTags.length > 0) {
+                maxDisplayResultsForTagMatch = 12;
+            }
+            
+            // Фильтруем результаты
+            const filteredUsers = users.filter(user => {
+                // Если есть теги, фильтруем по ним
+                if (extractedTags && extractedTags.length > 0) {
+                    return user.interests && user.interests.some(interest => 
+                        extractedTags.some(tag => 
+                            interest.toLowerCase().includes(tag.toLowerCase()) || 
+                            tag.toLowerCase().includes(interest.toLowerCase())
+                        )
+                    );
                 }
-                
-                // Фильтруем и отображаем результаты
-                filterResultsByActiveTags(query, extractedTags);
-            }, 1000);
+                // Иначе фильтруем по запросу
+                return (
+                    (user.name && user.name.toLowerCase().includes(query.toLowerCase())) || 
+                    (user.location && user.location.toLowerCase().includes(query.toLowerCase())) ||
+                    (user.interests && user.interests.some(interest => interest.toLowerCase().includes(query.toLowerCase())))
+                );
+            });
+            
+            // Выводим результаты
+            displayResults(filteredUsers, extractedTags);
         });
     }
     
@@ -1183,22 +953,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Инициализируем отфильтрованных пользователей
         let filteredUsers = [];
         
-        // Проверяем наличие активных тегов
-        if (activeTags.length > 0) {
-            // Если есть активные теги, фильтруем пользователей по ним
+        // Приоритет фильтрации:
+        // 1. Активные теги (выбранные пользователем)
+        // 2. Извлеченные теги (определенные системой)
+        // 3. Поисковый запрос
+        
+        const tagsToUse = activeTags.length > 0 ? activeTags : allTags;
+        
+        if (tagsToUse && tagsToUse.length > 0) {
+            // Фильтруем пользователей по тегам
             filteredUsers = users.filter(user => 
-                activeTags.some(tag => 
+                tagsToUse.some(tag => 
                     user.interests && user.interests.some(interest => 
-                        interest.toLowerCase().includes(tag.toLowerCase())
-                    )
-                )
-            );
-        } else if (allTags && allTags.length > 0) {
-            // Если нет активных тегов, но есть извлеченные теги, фильтруем по ним
-            filteredUsers = users.filter(user => 
-                allTags.some(tag => 
-                    user.interests && user.interests.some(interest => 
-                        interest.toLowerCase().includes(tag.toLowerCase())
+                        interest.toLowerCase().includes(tag.toLowerCase()) ||
+                        tag.toLowerCase().includes(interest.toLowerCase())
                     )
                 )
             );
@@ -1214,6 +982,17 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Отображаем результаты с выделенными тегами
         const highlightTags = activeTags.length > 0 ? activeTags : allTags || [];
+        
+        // Если есть результаты и они содержат хотя бы один тег, обновляем maxDisplayResults
+        if (filteredUsers.length > 0 && tagsToUse.length > 0) {
+            // Показываем большее количество результатов при соответствии тегам
+            maxDisplayResultsForTagMatch = 12; // Показываем больше результатов при совпадении тегов
+        } else {
+            // Возвращаем стандартное значение
+            maxDisplayResultsForTagMatch = maxDisplayResults;
+        }
+        
+        // Отображаем отфильтрованных пользователей
         displayResults(filteredUsers, highlightTags);
     }
     
@@ -1549,976 +1328,39 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Функция для отображения результатов поиска
-    function displayResults(results, highlightTags = []) {
-        const resultsContainer = document.getElementById('results-container');
-        const loadMoreButton = document.getElementById('load-more-btn');
-        const noResultsMessage = document.getElementById('no-results-message');
-        
-        // Очищаем контейнер результатов
-        resultsContainer.innerHTML = '';
-        
-        if (results.length === 0) {
-            // Если результатов нет, показываем соответствующее сообщение
-            noResultsMessage.style.display = 'block';
-            loadMoreButton.style.display = 'none';
-            return;
-        }
-        
-        // Скрываем сообщение об отсутствии результатов
-        noResultsMessage.style.display = 'none';
-        
-        // Ограничиваем количество отображаемых результатов
-        const displayUsers = results.slice(0, maxDisplayResults);
-        
-        // Создаем карточки пользователей
-        displayUsers.forEach(user => {
-            const userCard = createUserCard(user, highlightTags);
-            resultsContainer.appendChild(userCard);
-        });
-        
-        // Показываем или скрываем кнопку "Загрузить еще"
-        if (results.length > maxDisplayResults) {
-            loadMoreButton.style.display = 'block';
-        } else {
-            loadMoreButton.style.display = 'none';
-        }
-    }
-    
-    // Функция для добавления обработчиков событий карточкам пользователей
-    function attachUserCardEventListeners() {
-        const messageBtns = document.querySelectorAll('.message-btn');
-        const viewProfileBtns = document.querySelectorAll('.view-profile-btn');
-        
-        // Добавляем обработчики для кнопок "Написать"
-        messageBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const userId = btn.getAttribute('data-id');
-                if (!userId) {
-                    console.error('Не удалось получить ID пользователя');
-                    return;
-                }
-                
-                // Находим пользователя по ID
-                const user = users.find(u => u.id.toString() === userId.toString());
-                if (!user) {
-                    console.error('Пользователь не найден');
-                    return;
-                }
-                
-                // Показываем сообщение об успешном действии
-                showSuccessModal(`Отправка сообщения пользователю ${user.name}`);
-            });
-        });
-        
-        // Добавляем обработчики для кнопок "Профиль"
-        viewProfileBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const userId = btn.getAttribute('data-id');
-                if (!userId) {
-                    console.error('Не удалось получить ID пользователя');
-                    return;
-                }
-                
-                // Находим пользователя по ID
-                const user = users.find(u => u.id.toString() === userId.toString());
-                if (!user) {
-                    console.error('Пользователь не найден');
-                    return;
-                }
-                
-                // Показываем сообщение об успешном действии
-                showSuccessModal(`Просмотр профиля пользователя ${user.name}`);
-            });
-        });
-    }
-    
-    // Загрузка дополнительных результатов
-    function loadMoreResults() {
-        // В реальном приложении здесь был бы запрос к API
-        // Для демонстрации просто скрываем кнопку
-        loadMoreButton.style.display = 'none';
-        
-        // Добавляем сообщение о конце результатов
-        const endOfResultsMessage = document.createElement('div');
-        endOfResultsMessage.className = 'end-of-results';
-        endOfResultsMessage.textContent = 'Все результаты загружены';
-        resultsContainer.appendChild(endOfResultsMessage);
-    }
-    
-    // Сброс фильтров
-    function resetFilters() {
-        // Сбрасываем все чекбоксы
-        const checkboxes = filterModal.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = false;
-        });
-        
-        // Сбрасываем поисковый запрос
-        if (searchInput) {
-            searchInput.value = '';
-        }
-        
-        // Отображаем всех пользователей
-        displayResults(users);
-        
-        // Закрываем модальное окно фильтров
-        filterModal.style.display = 'none';
-    }
-    
-    // Обработчик нажатия на кнопку "Связаться"
-    function handleConnectClick(userId) {
-        const user = users.find(u => u.id === userId);
-        if (!user) return;
-        
-        // Проверяем, авторизован ли пользователь
-        if (!currentUser) {
-            // Если нет, показываем модальное окно с регистрацией
-            registerModal.style.display = 'flex';
-            return;
-        }
-        
-        // Здесь можно добавить логику для связи с пользователем
-        console.log(`Запрос на связь с пользователем: ${user.name}`);
-        
-        // Показываем уведомление об успешном запросе
-        showNotification(`Запрос на связь с ${user.name} отправлен!`, 'success');
-    }
-    
-    // Обработчик нажатия на кнопку "Профиль"
-    function handleViewProfileClick(userId) {
-        const user = users.find(u => u.id === userId);
-        if (!user) return;
-        
-        // Здесь можно добавить логику открытия профиля пользователя
-        console.log(`Просмотр профиля пользователя: ${user.name}`);
-        
-        // Временное решение - показываем уведомление
-        showNotification(`Профиль ${user.name} будет доступен в ближайшее время`, 'info');
-    }
-    
-    // Показ профиля пользователя
-    function showUserProfile(user) {
-        // В реальном приложении здесь был бы переход на страницу профиля
-        alert(`Профиль пользователя ${user.name}\nМестоположение: ${user.location}\nИнтересы: ${user.interests.join(', ')}`);
-    }
-    
-    /**
-     * Показывает уведомление пользователю
-     * @param {string} message - Текст уведомления
-     * @param {string} type - Тип уведомления: 'info', 'success', 'warning', 'error'
-     */
-    function showNotification(message, type = 'info') {
-        // Удаляем предыдущее уведомление, если есть
-        const existingNotification = document.querySelector('.notification');
-        if (existingNotification) {
-            existingNotification.remove();
-        }
-        
-        // Создаем элемент уведомления
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        
-        // Добавляем в DOM
-        document.body.appendChild(notification);
-        
-        // Показываем уведомление
-        setTimeout(() => {
-            notification.style.opacity = '1';
-            notification.style.transform = 'translateY(0)';
-        }, 10);
-        
-        // Скрываем уведомление через 3 секунды
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateY(-20px)';
-            
-            // Удаляем элемент после анимации
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        }, 3000);
-    }
-    
-    // Функция для заполнения списка тегов в зависимости от выбранной категории
-    function populateTagsList(container, category, currentTags = []) {
-        // Проверяем, существует ли контейнер
-        if (!container) {
-            console.error('Контейнер для тегов не найден');
-            return;
-        }
-        
-        // Список доступных тегов по категориям
-        const availableTags = {
-            art: [
-                'Искусство', 'Фотография', 'Живопись', 'Рисование', 'Дизайн', 'Архитектура', 
-                'Скульптура', 'Графика', 'Иллюстрация', 'Цифровое искусство', 'Граффити',
-                'Мода', 'Кино', 'Театр', 'Танцы', 'Музыка', 'Литература', 'Поэзия'
-            ],
-            tech: [
-                'Технологии', 'Программирование', 'Web-разработка', 'Мобильная разработка',
-                'Искусственный интеллект', 'Машинное обучение', 'Большие данные', 'Блокчейн',
-                'Криптовалюты', 'Виртуальная реальность', 'Дополненная реальность', 'Робототехника',
-                'Кибербезопасность', 'DevOps', 'Электроника', 'IoT', 'Автоматизация', 'Гаджеты'
-            ],
-            sport: [
-                'Спорт', 'Футбол', 'Баскетбол', 'Волейбол', 'Бег', 'Плавание', 'Теннис',
-                'Велоспорт', 'Йога', 'Пилатес', 'Кроссфит', 'Бодибилдинг', 'Боевые искусства',
-                'Скалолазание', 'Сноуборд', 'Горные лыжи', 'Серфинг', 'Хоккей', 'Фигурное катание'
-            ],
-            hobby: [
-                'Путешествия', 'Медитация', 'Саморазвитие', 'Блоггинг', 'Книги', 'Поэзия',
-                'Кулинария', 'Выпечка', 'Садоводство', 'Настольные игры', 'Видеоигры',
-                'Комнатные растения', 'Головоломки', 'Косплей', 'Аниме', 'Коллекционирование'
-            ]
-        };
-        
-        // Получаем список тегов в зависимости от категории
-        let tagsToShow = [];
-        if (category === 'all') {
-            // Объединяем все категории в один массив
-            tagsToShow = [].concat(...Object.values(availableTags));
-        } else if (availableTags[category]) {
-            tagsToShow = availableTags[category];
-        }
-        
-        // Сортируем теги по алфавиту
-        tagsToShow.sort();
-        
-        // Очищаем контейнер
-        container.innerHTML = '';
-        
-        // Создаем поле поиска для фильтрации тегов
-        const searchInput = document.createElement('div');
-        searchInput.className = 'tag-search';
-        searchInput.innerHTML = `
-            <input type="text" placeholder="Поиск тега..." class="tag-search-input">
-        `;
-        container.appendChild(searchInput);
-        
-        // Создаем контейнер для тегов
-        const tagsGrid = document.createElement('div');
-        tagsGrid.className = 'tags-grid';
-        container.appendChild(tagsGrid);
-        
-        // Добавляем обработчик события ввода для поиска
-        const tagSearchInput = searchInput.querySelector('.tag-search-input');
-        if (tagSearchInput) {
-            tagSearchInput.addEventListener('input', function() {
-                const searchValue = this.value.toLowerCase();
-                
-                // Фильтруем теги по введенному значению
-                const filteredTags = tagsToShow.filter(tag => 
-                    tag.toLowerCase().includes(searchValue)
-                );
-                
-                // Обновляем отображение тегов
-                updateTagsDisplay(filteredTags, tagsGrid, currentTags);
-            });
-            
-            // Фокусируемся на поле поиска тегов
-            setTimeout(() => {
-                tagSearchInput.focus();
-            }, 100);
-        }
-        
-        // Отображаем исходный список тегов
-        updateTagsDisplay(tagsToShow, tagsGrid, currentTags);
-    }
-    
-    function updateTagsDisplay(tags, container, currentTags = []) {
-        // Проверяем, существует ли контейнер
-        if (!container) {
-            console.error('Контейнер для тегов не найден');
-            return;
-        }
-        
-        // Очищаем контейнер
-        container.innerHTML = '';
-        
-        // Если нет тегов для отображения
-        if (!tags || tags.length === 0) {
-            container.innerHTML = '<div class="no-tags">Теги не найдены</div>';
-            return;
-        }
-        
-        // Отображаем каждый тег
-        tags.forEach(tag => {
-            const tagElement = document.createElement('div');
-            tagElement.className = 'tag-option';
-            
-            // Если тег уже добавлен, подсвечиваем его
-            const isSelected = currentTags.some(t => t.toLowerCase() === tag.toLowerCase());
-            if (isSelected) {
-                tagElement.classList.add('selected');
-            }
-            
-            tagElement.textContent = tag;
-            
-            // Добавляем обработчик клика по тегу
-            tagElement.addEventListener('click', function() {
-                if (isSelected) {
-                    // Если тег уже выбран, предупреждаем пользователя
-                    showNotification('Этот тег уже добавлен', 'info');
-                    return;
-                }
-                
-                // Создаем новый элемент тега
-                const heroTagsContainer = document.querySelector('.popular-tags.improved-tags');
-                if (!heroTagsContainer) return;
-                
-                const tagsWrapper = heroTagsContainer.querySelector('.tags-wrapper');
-                if (!tagsWrapper) return;
-                
-                const newTagContainer = document.createElement('div');
-                newTagContainer.className = 'tag-container';
-                
-                newTagContainer.innerHTML = `
-                    <a href="#" class="tag">${tag}</a>
-                    <button class="remove-tag-btn" title="Удалить тег"><i class="fa-solid fa-times"></i></button>
-                `;
-                
-                // Добавляем обработчик на клик по тегу
-                const tagLink = newTagContainer.querySelector('.tag');
-                if (tagLink) {
-                    tagLink.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const searchInput = document.getElementById('search-input');
-                        if (searchInput) {
-                            searchInput.value = this.textContent;
-                            performSearch();
-                        }
-                    });
-                }
-                
-                // Добавляем обработчик на кнопку удаления
-                const removeBtn = newTagContainer.querySelector('.remove-tag-btn');
-                if (removeBtn) {
-                    removeBtn.addEventListener('click', function() {
-                        newTagContainer.remove();
-                        // Перезапускаем поиск с обновленными тегами
-                        filterResultsByActiveTags(query, getActiveTags());
-                    });
-                }
-                
-                // Добавляем тег в DOM
-                tagsWrapper.appendChild(newTagContainer);
-                
-                // Перезапускаем поиск с обновленными тегами
-                filterResultsByActiveTags(query, getActiveTags());
-                
-                // Скрываем форму добавления тега
-                const addTagForm = document.querySelector('.add-tag-form');
-                if (addTagForm) {
-                    addTagForm.style.display = 'none';
-                }
-                
-                // Показываем уведомление об успешном добавлении
-                showNotification(`Тег "${tag}" добавлен`, 'success');
-                
-                // Обновляем отображение тегов в селекторе (подсвечиваем выбранный тег)
-                this.classList.add('selected');
-            });
-            
-            // Добавляем тег в контейнер
-            container.appendChild(tagElement);
-        });
-    }
-    
-    // Функция для отображения выбора тегов вместо ввода
-    function toggleTagSelector() {
-        const tagSelector = document.querySelector('.tag-selector');
-        
-        if (tagSelector.style.display === 'block') {
-            tagSelector.style.display = 'none';
-        } else {
-            tagSelector.innerHTML = '';
-            
-            // Получаем текущие активные теги
-            const activeTagsElements = document.querySelectorAll('.active-tags .tag');
-            const activeTags = Array.from(activeTagsElements).map(tag => tag.textContent.trim());
-            
-            // Создаем содержимое селектора тегов
-            createTagSelector(tagSelector, activeTags);
-            tagSelector.style.display = 'block';
-        }
-    }
-    
-    // Функция для создания селектора тегов
-    function createTagSelector(container, currentTags = []) {
-        // Заголовок
-        const header = document.createElement('div');
-        header.className = 'tag-selector-header';
-        header.innerHTML = '<h4>Выберите теги</h4>';
-        container.appendChild(header);
-        
-        // Поле поиска
-        const searchDiv = document.createElement('div');
-        searchDiv.className = 'tag-search';
-        const searchInput = document.createElement('input');
-        searchInput.type = 'text';
-        searchInput.placeholder = 'Поиск тегов...';
-        searchDiv.appendChild(searchInput);
-        container.appendChild(searchDiv);
-        
-        // Создаем сетку для тегов
-        const tagsGrid = document.createElement('div');
-        tagsGrid.className = 'tags-grid';
-        container.appendChild(tagsGrid);
-        
-        // Сортируем теги в алфавитном порядке
-        const sortedTags = [...tagsData].sort((a, b) => a.localeCompare(b));
-        
-        // Заполняем сетку тегами
-        populateTagsGrid(tagsGrid, sortedTags, currentTags);
-        
-        // Добавляем обработчик для поиска тегов
-        searchInput.addEventListener('input', () => {
-            const query = searchInput.value.toLowerCase();
-            const filteredTags = sortedTags.filter(tag => 
-                tag.toLowerCase().includes(query)
-            );
-            
-            populateTagsGrid(tagsGrid, filteredTags, currentTags);
-        });
-        
-        // Кнопки
-        const footer = document.createElement('div');
-        footer.className = 'tag-selector-footer';
-        
-        const confirmButton = document.createElement('button');
-        confirmButton.className = 'telegram-button';
-        confirmButton.textContent = 'Готово';
-        confirmButton.addEventListener('click', () => {
-            container.style.display = 'none';
-        });
-        
-        footer.appendChild(confirmButton);
-        container.appendChild(footer);
-    }
-    
-    // Заполнение сетки тегами
-    function populateTagsGrid(grid, tags, currentTags) {
-        grid.innerHTML = '';
-        
-        if (tags.length === 0) {
-            const noTags = document.createElement('div');
-            noTags.className = 'no-tags';
-            noTags.textContent = 'Нет тегов, соответствующих вашему запросу';
-            grid.appendChild(noTags);
-            return;
-        }
-        
-        tags.forEach(tag => {
-            const tagElement = document.createElement('div');
-            tagElement.className = 'tag-option';
-            tagElement.textContent = tag;
-            
-            // Проверяем, выбран ли уже этот тег
-            if (currentTags.includes(tag)) {
-                tagElement.classList.add('selected');
-            }
-            
-            tagElement.addEventListener('click', () => {
-                if (tagElement.classList.contains('selected')) {
-                    // Если тег уже выбран, удаляем его
-                    removeTag(tag);
-                    tagElement.classList.remove('selected');
-                } else {
-                    // Иначе добавляем его
-                    addTag(tag);
-                    tagElement.classList.add('selected');
-                }
-            });
-            
-            grid.appendChild(tagElement);
-        });
-    }
-    
-    // Добавление тега в фильтры
-    function addTag(tag) {
-        const activeTagsContainer = document.querySelector('.active-tags');
-        
-        // Проверяем, есть ли уже такой тег
-        const existingTags = document.querySelectorAll('.active-tags .tag');
-        for (const existingTag of existingTags) {
-            if (existingTag.textContent.trim() === tag) {
-                return; // Если тег уже есть, не добавляем его снова
-            }
-        }
-        
-        const tagContainer = document.createElement('div');
-        tagContainer.className = 'tag-container';
-        
-        const tagElement = document.createElement('span');
-        tagElement.className = 'tag';
-        tagElement.textContent = tag;
-        
-        const removeButton = document.createElement('button');
-        removeButton.className = 'remove-tag-btn';
-        removeButton.innerHTML = '&times;';
-        removeButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            tagContainer.remove();
-            // Обновляем результаты поиска при удалении тега
-            filterResultsByActiveTags();
-            
-            // Если есть открытый селектор тегов, обновляем его
-            const tagSelector = document.querySelector('.tag-selector');
-            if (tagSelector && tagSelector.style.display === 'block') {
-                const selectedTagElement = tagSelector.querySelector(`.tag-option[data-tag="${tag}"]`);
-                if (selectedTagElement) {
-                    selectedTagElement.classList.remove('selected');
-                }
-            }
-        });
-        
-        tagContainer.appendChild(tagElement);
-        tagContainer.appendChild(removeButton);
-        activeTagsContainer.appendChild(tagContainer);
-        
-        // Обновляем результаты поиска
-        filterResultsByActiveTags();
-    }
-    
-    // Удаление тега из фильтров
-    function removeTag(tag) {
-        const activeTagsContainer = document.querySelector('.active-tags');
-        const tags = activeTagsContainer.querySelectorAll('.tag');
-        
-        for (const tagElement of tags) {
-            if (tagElement.textContent.trim() === tag) {
-                tagElement.parentElement.remove();
-                break;
-            }
-        }
-        
-        // Обновляем результаты поиска
-        filterResultsByActiveTags();
-    }
-    
-    // Создание карточки пользователя с подсветкой тегов
-    function createUserCard(user, highlightedTags = []) {
-        const card = document.createElement('div');
-        card.className = 'user-card';
-        if (user.premium) {
-            card.classList.add('premium-user');
-        }
-        
-        // Фон карточки
-        const cardBackground = document.createElement('div');
-        cardBackground.className = 'card-background';
-        if (user.background) {
-            cardBackground.style.backgroundImage = `url(${user.background})`;
-        }
-        card.appendChild(cardBackground);
-        
-        // Контент карточки
-        const cardContent = document.createElement('div');
-        cardContent.className = 'card-content';
-        
-        // Аватар
-        const avatar = document.createElement('div');
-        avatar.className = 'user-avatar';
-        const avatarImg = document.createElement('img');
-        avatarImg.src = user.avatar || 'https://via.placeholder.com/100';
-        avatarImg.alt = `${user.name}'s avatar`;
-        avatar.appendChild(avatarImg);
-        
-        // Премиум бейдж
-        if (user.premium) {
-            const premiumBadge = document.createElement('div');
-            premiumBadge.className = 'premium-badge';
-            premiumBadge.textContent = 'PREMIUM';
-            avatar.appendChild(premiumBadge);
-        }
-        
-        cardContent.appendChild(avatar);
-        
-        // Информация о пользователе
-        const userInfo = document.createElement('div');
-        userInfo.className = 'user-info';
-        
-        // Имя
-        const name = document.createElement('h3');
-        name.className = 'user-name';
-        name.textContent = user.name;
-        userInfo.appendChild(name);
-        
-        // Локация
-        if (user.location) {
-            const location = document.createElement('p');
-            location.className = 'user-location';
-            location.textContent = user.location;
-            userInfo.appendChild(location);
-        }
-        
-        // Интересы
-        const interests = document.createElement('div');
-        interests.className = 'user-interests';
-        
-        if (user.interests && user.interests.length > 0) {
-            user.interests.forEach(interest => {
-                const interestTag = document.createElement('span');
-                interestTag.className = 'interest-tag';
-                interestTag.textContent = interest;
-                
-                // Подсвечиваем теги, если они есть в списке активных фильтров
-                if (highlightedTags.includes(interest)) {
-                    interestTag.classList.add('highlight');
-                    card.classList.add('highlighted-card');
-                }
-                
-                interests.appendChild(interestTag);
-            });
-        } else {
-            const noInterests = document.createElement('span');
-            noInterests.className = 'no-interests';
-            noInterests.textContent = 'Интересы не указаны';
-            interests.appendChild(noInterests);
-        }
-        
-        userInfo.appendChild(interests);
-        
-        // Биография
-        if (user.bio) {
-            const bio = document.createElement('p');
-            bio.className = 'user-bio';
-            bio.textContent = user.bio;
-            userInfo.appendChild(bio);
-        }
-        
-        // Кнопки действий
-        const actions = document.createElement('div');
-        actions.className = 'card-actions';
-        
-        const messageBtn = document.createElement('button');
-        messageBtn.className = 'message-btn';
-        messageBtn.textContent = 'Сообщение';
-        messageBtn.addEventListener('click', () => {
-            // Логика для отправки сообщения
-            console.log(`Отправка сообщения пользователю ${user.name}`);
-        });
-        
-        const viewProfileBtn = document.createElement('button');
-        viewProfileBtn.className = 'view-profile-btn';
-        viewProfileBtn.textContent = 'Профиль';
-        viewProfileBtn.addEventListener('click', () => {
-            // Логика для просмотра профиля
-            console.log(`Просмотр профиля пользователя ${user.name}`);
-        });
-        
-        actions.appendChild(messageBtn);
-        actions.appendChild(viewProfileBtn);
-        
-        userInfo.appendChild(actions);
-        cardContent.appendChild(userInfo);
-        card.appendChild(cardContent);
-        
-        return card;
-    }
-    
-    // Получение активных тегов
-    function getActiveTags() {
-        const activeTagsElements = document.querySelectorAll('.active-tags .tag');
-        return Array.from(activeTagsElements).map(tag => tag.textContent.trim());
-    }
-    
-    // Фильтрация результатов по активным тегам
-    function filterResultsByActiveTags() {
-        const activeTags = getActiveTags();
-        let filteredUsers = demoUsers;
-        
-        if (activeTags.length > 0) {
-            filteredUsers = demoUsers.filter(user => {
-                if (!user.interests) return false;
-                return activeTags.some(tag => user.interests.includes(tag));
-            });
-        }
-        
-        displayResults(filteredUsers, activeTags);
-    }
-    
-    // Инициализация при загрузке страницы
-    document.addEventListener('DOMContentLoaded', () => {
-        // ... existing code ...
-        
-        // Находим кнопку добавления тега и заменяем обработчик
-        const addTagBtn = document.querySelector('.add-tag-btn');
-        if (addTagBtn) {
-            // Удаляем старые обработчики
-            const newAddTagBtn = addTagBtn.cloneNode(true);
-            addTagBtn.parentNode.replaceChild(newAddTagBtn, addTagBtn);
-            
-            // Добавляем новый обработчик для отображения селектора тегов
-            newAddTagBtn.addEventListener('click', toggleTagSelector);
-        }
-        
-        // Создаем контейнер для селектора тегов, если его еще нет
-        if (!document.querySelector('.tag-selector')) {
-            const tagSelector = document.createElement('div');
-            tagSelector.className = 'tag-selector';
-            tagSelector.style.display = 'none';
-            document.querySelector('.improved-tags').appendChild(tagSelector);
-        }
-        
-        // Отображаем все теги при первой загрузке
-        displayResults(demoUsers);
-    });
-    
-    // Массив доступных тегов для выбора
-    const tagsData = [
-        'Программирование', 'Дизайн', 'Музыка', 'Спорт', 'Чтение', 
-        'Путешествия', 'Кино', 'Фотография', 'Кулинария', 'Живопись', 
-        'Танцы', 'Йога', 'Хайкинг', 'Наука', 'История', 
-        'Технологии', 'Блоггинг', 'Волонтерство', 'Мода', 'Автомобили', 
-        'Видеоигры', 'Рыбалка', 'Садоводство', 'Шахматы', 'Настольные игры'
-    ];
-
-    // Получаем список возможных тегов для селектора
-    const possibleTags = [
-        // Искусство
-        'Живопись', 'Скульптура', 'Фотография', 'Литература', 'Поэзия', 'Театр', 'Кино', 'Архитектура', 'Рисование', 'Дизайн',
-        
-        // Музыка
-        'Классическая музыка', 'Рок', 'Поп', 'Джаз', 'Хип-хоп', 'Электронная музыка', 'Фолк', 'Блюз', 'Кантри', 'Металл',
-        
-        // Технологии
-        'Программирование', 'AI', 'Робототехника', 'Блокчейн', 'Web3', 'Мобильные приложения', 'Кибербезопасность', 'Data Science', 'IoT', 'VR/AR',
-        
-        // Спорт
-        'Футбол', 'Баскетбол', 'Теннис', 'Плавание', 'Йога', 'Бег', 'Велоспорт', 'Бодибилдинг', 'Сноуборд', 'Серфинг',
-        
-        // Стиль жизни
-        'Здоровье', 'Мода', 'Путешествия', 'Кулинария', 'Фитнес', 'Медитация', 'Домашний декор', 'Садоводство', 'Косметика', 'Личностный рост',
-        
-        // Наука
-        'Физика', 'Биология', 'Химия', 'Психология', 'Астрономия', 'Медицина', 'Генетика', 'Экология', 'Математика', 'История',
-        
-        // Хобби
-        'Вязание', 'Коллекционирование', 'Настольные игры', 'Шахматы', 'Игровая индустрия', 'Аниме', 'Косплей', 'DIY', 'Подкасты', 'Волонтёрство'
-    ];
-
-    // Функция для переключения отображения селектора тегов
-    function toggleTagSelector() {
-        const existingSelector = document.querySelector('.tag-selector');
-        
-        // Если селектор уже существует, удаляем его (закрываем)
-        if (existingSelector) {
-            existingSelector.remove();
-            return;
-        }
-        
-        // Получаем текущие активные теги
-        const currentTags = getActiveTags();
-        
-        // Создаем контейнер для селектора тегов
-        const tagSelector = document.createElement('div');
-        tagSelector.className = 'tag-selector';
-        
-        // Добавляем селектор в DOM рядом с кнопкой добавления тега
-        const heroTagsContainer = document.querySelector('.popular-tags');
-        if (heroTagsContainer) {
-            createTagSelector(tagSelector, currentTags);
-            heroTagsContainer.appendChild(tagSelector);
-        }
-    }
-
-    // Функция для создания селектора тегов
-    function createTagSelector(container, currentTags) {
-        // Создаем заголовок
-        const header = document.createElement('div');
-        header.className = 'tag-selector-header';
-        header.innerHTML = `
-            <h4>Выберите интересы</h4>
-            <button class="btn btn-small btn-outline close-selector">Закрыть</button>
-        `;
-        container.appendChild(header);
-        
-        // Добавляем поле поиска
-        const searchContainer = document.createElement('div');
-        searchContainer.className = 'tag-search';
-        searchContainer.innerHTML = `
-            <input type="text" placeholder="Поиск интересов..." class="tag-search-input">
-        `;
-        container.appendChild(searchContainer);
-        
-        // Создаем сетку для тегов
-        const tagsGrid = document.createElement('div');
-        tagsGrid.className = 'tags-grid';
-        container.appendChild(tagsGrid);
-        
-        // Заполняем сетку тегами
-        populateTagsGrid(tagsGrid, possibleTags, currentTags);
-        
-        // Обработчик для закрытия селектора
-        const closeBtn = header.querySelector('.close-selector');
-        closeBtn.addEventListener('click', () => {
-            container.remove();
-        });
-        
-        // Обработчик для поиска тегов
-        const searchInput = searchContainer.querySelector('.tag-search-input');
-        searchInput.addEventListener('input', () => {
-            const searchQuery = searchInput.value.toLowerCase();
-            const filteredTags = possibleTags.filter(tag => 
-                tag.toLowerCase().includes(searchQuery)
-            );
-            populateTagsGrid(tagsGrid, filteredTags, currentTags);
-        });
-        
-        // Устанавливаем фокус на поле поиска
-        setTimeout(() => searchInput.focus(), 100);
-    }
-
-    // Функция для заполнения сетки тегов
-    function populateTagsGrid(grid, tags, currentTags) {
-        grid.innerHTML = '';
-        
-        if (tags.length === 0) {
-            grid.innerHTML = '<div class="no-tags">Теги не найдены</div>';
-            return;
-        }
-        
-        tags.forEach(tag => {
-            const tagOption = document.createElement('div');
-            tagOption.className = 'tag-option';
-            if (currentTags.includes(tag)) {
-                tagOption.classList.add('selected');
-            }
-            tagOption.textContent = tag;
-            
-            // Обработчик клика по тегу
-            tagOption.addEventListener('click', () => {
-                if (tagOption.classList.contains('selected')) {
-                    // Если тег уже выбран, удаляем его
-                    removeTag(tag);
-                    tagOption.classList.remove('selected');
-                } else {
-                    // Иначе добавляем его
-                    addTag(tag);
-                    tagOption.classList.add('selected');
-                }
-            });
-            
-            grid.appendChild(tagOption);
-        });
-    }
-
-    // Функция для добавления тега
-    function addTag(tag) {
-        const tagsWrapper = document.querySelector('.tags-wrapper');
-        if (!tagsWrapper) return;
-        
-        // Проверяем, не добавлен ли уже такой тег
-        const existingTags = Array.from(tagsWrapper.querySelectorAll('.tag'))
-            .map(el => el.textContent);
-        
-        if (existingTags.includes(tag)) return;
-        
-        // Создаем новый элемент тега
-        const newTagContainer = document.createElement('div');
-        newTagContainer.className = 'tag-container';
-        newTagContainer.innerHTML = `
-            <a href="#" class="tag">${tag}</a>
-            <button class="remove-tag-btn" title="Удалить тег"><i class="fas fa-times"></i></button>
-        `;
-        
-        // Добавляем обработчик на клик по тегу
-        const tagLink = newTagContainer.querySelector('.tag');
-        tagLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            searchInput.value = this.textContent;
-            performSearch();
-        });
-        
-        // Добавляем обработчик на кнопку удаления
-        const removeBtn = newTagContainer.querySelector('.remove-tag-btn');
-        removeBtn.addEventListener('click', function() {
-            newTagContainer.remove();
-            // Перезапускаем фильтрацию с обновленными тегами
-            filterResultsByActiveTags();
-        });
-        
-        // Добавляем тег в DOM
-        tagsWrapper.appendChild(newTagContainer);
-        
-        // Перезапускаем фильтрацию результатов
-        filterResultsByActiveTags();
-    }
-
-    // Функция для удаления тега
-    function removeTag(tag) {
-        const tagsWrapper = document.querySelector('.tags-wrapper');
-        if (!tagsWrapper) return;
-        
-        const tagElements = tagsWrapper.querySelectorAll('.tag');
-        tagElements.forEach(tagEl => {
-            if (tagEl.textContent === tag) {
-                const tagContainer = tagEl.closest('.tag-container');
-                if (tagContainer) {
-                    tagContainer.remove();
-                    // Перезапускаем фильтрацию с обновленными тегами
-                    filterResultsByActiveTags();
-                }
-            }
-        });
-    }
-
-    // Функция для получения активных тегов
-    function getActiveTags() {
-        const tagElements = document.querySelectorAll('.tags-wrapper .tag');
-        const tags = [];
-        
-        tagElements.forEach(tag => {
-            tags.push(tag.textContent);
-        });
-        
-        return tags;
-    }
-
-    // Функция для фильтрации результатов по активным тегам
-    function filterResultsByActiveTags() {
-        const activeTags = getActiveTags();
-        
-        if (activeTags.length === 0) {
-            // Если нет активных тегов, показываем все результаты
-            displayResults(users);
-            return;
-        }
-        
-        // Фильтруем пользователей по тегам
-        const filteredUsers = users.filter(user => {
-            return activeTags.some(tag => user.interests.includes(tag));
-        });
-        
-        // Отображаем результаты с подсветкой тегов
-        displayResults(filteredUsers, activeTags);
-    }
-
-    // ... existing code ...
-
-    // Обновляем функцию displayResults для поддержки подсветки тегов
     function displayResults(users, highlightedTags = []) {
-        const resultsContainer = document.getElementById('results-container');
-        const loadMoreButton = document.getElementById('load-more-btn');
-        const noResultsMessage = document.getElementById('no-results-message');
-        
-        // Очищаем контейнер результатов
+        // Clear current results
         resultsContainer.innerHTML = '';
         
         if (users.length === 0) {
             // Если результатов нет, показываем соответствующее сообщение
-            noResultsMessage.style.display = 'block';
-            loadMoreButton.style.display = 'none';
+            if (noResultsMessage) {
+                noResultsMessage.style.display = 'block';
+            }
+            if (loadMoreButton) {
+                loadMoreButton.style.display = 'none';
+            }
+            
+            // Обновляем высоту контейнера
+            const resultsSection = document.getElementById('results-section');
+            if (resultsSection) {
+                resultsSection.style.height = 'auto';
+            }
+            
             return;
         }
         
         // Скрываем сообщение об отсутствии результатов
-        noResultsMessage.style.display = 'none';
+        if (noResultsMessage) {
+            noResultsMessage.style.display = 'none';
+        }
+        
+        // Определяем, сколько результатов показывать
+        const displayLimit = highlightedTags && highlightedTags.length > 0 ? 
+            maxDisplayResultsForTagMatch : maxDisplayResults;
         
         // Ограничиваем количество отображаемых результатов
-        const displayUsers = users.slice(0, maxDisplayResults);
+        const displayUsers = users.slice(0, displayLimit);
         
         // Создаем карточки пользователей
         displayUsers.forEach(user => {
@@ -2527,10 +1369,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Показываем или скрываем кнопку "Загрузить еще"
-        if (users.length > maxDisplayResults) {
-            loadMoreButton.style.display = 'block';
-        } else {
-            loadMoreButton.style.display = 'none';
+        if (loadMoreButton) {
+            if (users.length > displayLimit) {
+                loadMoreButton.style.display = 'block';
+            } else {
+                loadMoreButton.style.display = 'none';
+                
+                // Если результатов мало, то добавляем сообщение
+                if (users.length <= 3) {
+                    const endOfResultsMessage = document.createElement('div');
+                    endOfResultsMessage.className = 'end-of-results';
+                    endOfResultsMessage.textContent = 'Все результаты загружены';
+                    resultsContainer.insertAdjacentElement('afterend', endOfResultsMessage);
+                }
+            }
+        }
+        
+        // Обновляем высоту контейнера
+        const resultsSection = document.getElementById('results-section');
+        if (resultsSection) {
+            resultsSection.style.height = 'auto';
         }
     }
 
@@ -2538,66 +1396,128 @@ document.addEventListener('DOMContentLoaded', function() {
     function createUserCard(user, highlightedTags = []) {
         const card = document.createElement('div');
         card.className = 'user-card';
+        card.setAttribute('data-id', user.id);
+        
+        // Устанавливаем стили видимости по умолчанию
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+        
+        // Устанавливаем z-index для правильного отображения при наведении
+        // Z-index будет меньше для последующих карточек, чтобы верхние всегда перекрывали нижние
+        const currentCards = document.querySelectorAll('.user-card').length;
+        card.style.zIndex = 10 - currentCards;
         
         // Добавляем подсветку карточки, если у пользователя есть хотя бы один подсвеченный тег
-        if (highlightedTags.length > 0 && user.interests.some(interest => highlightedTags.includes(interest))) {
-            card.classList.add('highlighted-card');
-        }
-        
-        // Добавляем класс premium для премиум пользователей
-        if (user.premium) {
-            card.classList.add('premium-user');
+        if (highlightedTags && highlightedTags.length > 0 && user.interests) {
+            const hasMatchingTag = user.interests.some(interest => 
+                highlightedTags.some(tag => 
+                    interest.toLowerCase().includes(tag.toLowerCase()) || 
+                    tag.toLowerCase().includes(interest.toLowerCase())
+                )
+            );
+            if (hasMatchingTag) {
+                card.classList.add('highlighted-card');
+            }
         }
         
         // Генерируем HTML карточки
-        const backgroundStyle = user.background ? `background-image: url('${user.background}')` : '';
+        const avatarUrl = user.avatar || 'https://via.placeholder.com/80?text=' + user.name.charAt(0);
+        
+        // Форматируем данные пользователя
+        const formattedName = formatUserText(user.name, 25);
+        const formattedLocation = formatUserText(user.location || 'Не указано', 30);
+        const formattedBio = formatUserBio(user.bio);
         
         // Создаем HTML для карточки
         card.innerHTML = `
-            <div class="card-background" style="${backgroundStyle}"></div>
             <div class="card-content">
                 <div class="user-avatar">
-                    <img src="${user.avatar || 'https://via.placeholder.com/80'}" alt="${user.name}">
-                    ${user.premium ? '<div class="premium-badge">PREMIUM</div>' : ''}
+                    <img src="${avatarUrl}" alt="${formattedName}" onerror="this.onerror=null; this.src='https://via.placeholder.com/80?text=${user.name.charAt(0)}';">
                 </div>
                 <div class="user-info">
-                    <h3 class="user-name">${user.name}</h3>
-                    <p class="user-location">${user.location || 'Не указано'}</p>
-                    <div class="user-interests">
-                        ${user.interests && user.interests.length > 0 
-                            ? user.interests.map(interest => `
-                                <span class="interest-tag${highlightedTags.includes(interest) ? ' highlight' : ''}">${interest}</span>
-                            `).join('')
-                            : '<span class="no-interests">Интересы не указаны</span>'}
+                    <div class="card-top">
+                        <h3 class="user-name">${formattedName}</h3>
+                        <p class="user-location"><i class="fa-solid fa-location-dot"></i>${formattedLocation}</p>
                     </div>
-                    ${user.bio ? `<p class="user-bio">${user.bio}</p>` : ''}
-                    <div class="card-actions">
-                        <button class="message-btn">Написать</button>
-                        <button class="view-profile-btn">Профиль</button>
+                    
+                    <div class="card-middle">
+                        <div class="user-interests">
+                            ${formatUserInterests(user.interests, highlightedTags)}
+                        </div>
+                        ${formattedBio ? `<p class="user-bio">${formattedBio}</p>` : ''}
+                    </div>
+                    
+                    <div class="card-bottom">
+                        <div class="card-actions">
+                            <button class="message-btn" data-id="${user.id}">Написать</button>
+                            <button class="view-profile-btn" data-id="${user.id}">Профиль</button>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
         
-        // Добавляем обработчик для кнопки "Написать"
-        card.querySelector('.message-btn').addEventListener('click', function() {
-            // Здесь логика отправки сообщения
-            alert(`Написать сообщение ${user.name}`);
-        });
+        // Добавляем обработчики событий для кнопок
+        const messageBtn = card.querySelector('.message-btn');
+        if (messageBtn) {
+            messageBtn.addEventListener('click', function() {
+                handleConnectClick(parseInt(this.getAttribute('data-id')));
+            });
+        }
         
-        // Добавляем обработчик для кнопки "Профиль"
-        card.querySelector('.view-profile-btn').addEventListener('click', function() {
-            // Здесь логика просмотра профиля
-            alert(`Просмотр профиля ${user.name}`);
-        });
+        const profileBtn = card.querySelector('.view-profile-btn');
+        if (profileBtn) {
+            profileBtn.addEventListener('click', function() {
+                handleViewProfileClick(parseInt(this.getAttribute('data-id')));
+            });
+        }
         
         return card;
+    }
+
+    // Форматирование текста с ограничением длины
+    function formatUserText(text, maxLength) {
+        if (!text) return '';
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
+    }
+
+    // Форматирование био пользователя
+    function formatUserBio(bio) {
+        if (!bio) return '';
+        // Очищаем от лишних пробелов и переносов
+        const cleanBio = bio.replace(/\s+/g, ' ').trim();
+        // Строго ограничиваем длину до 80 символов для лучшего отображения
+        return cleanBio.length > 80 ? cleanBio.substring(0, 80) + '...' : cleanBio;
+    }
+
+    // Вспомогательная функция для форматирования тегов пользователя
+    function formatUserInterests(interests, highlightedTags = []) {
+        if (!interests || interests.length === 0) {
+            return '<span class="no-interests">Интересы не указаны</span>';
+        }
+        
+        // Ограничиваем количество отображаемых тегов до 5
+        const visibleTags = interests.slice(0, 5);
+        let tagsHtml = '';
+        
+        // Создаем HTML для видимых тегов
+        visibleTags.forEach(interest => {
+            const isHighlighted = highlightedTags && highlightedTags.some(tag => 
+                interest.toLowerCase().includes(tag.toLowerCase()) || 
+                tag.toLowerCase().includes(interest.toLowerCase())
+            );
+            tagsHtml += `<span class="interest-tag${isHighlighted ? ' highlight' : ''}">${interest}</span>`;
+        });
+        
+        return tagsHtml;
     }
 
     // ... existing code ...
 
     // Обновляем обработчик для кнопки добавления тега
-    addTagBtn.addEventListener('click', function() {
+    addTagBtn.addEventListener('click', function(e) {
+        e.preventDefault();
         toggleTagSelector();
     });
 
@@ -2642,18 +1562,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const tagSelector = createTagSelector(activeTags);
         
         // Добавляем селектор в DOM
-        const heroSection = document.querySelector('.hero-section');
-        heroSection.appendChild(tagSelector);
-        
-        // Фокусируемся на поле поиска
-        setTimeout(() => {
-            const searchInput = tagSelector.querySelector('.tag-search-input');
-            if (searchInput) searchInput.focus();
-        }, 100);
+        const heroSection = document.querySelector('.hero');
+        if (heroSection) {
+            heroSection.appendChild(tagSelector);
+            
+            // Фокусируемся на поле поиска
+            setTimeout(() => {
+                const searchInput = tagSelector.querySelector('.tag-search-input');
+                if (searchInput) searchInput.focus();
+            }, 100);
+        }
         
         // Обработчик клика вне селектора для его закрытия
         document.addEventListener('click', function closeOnClickOutside(e) {
-            if (!tagSelector.contains(e.target) && e.target !== document.querySelector('.add-tag-btn')) {
+            const tagSelector = document.querySelector('.tag-selector');
+            if (tagSelector && !tagSelector.contains(e.target) && e.target !== document.querySelector('.add-tag-btn')) {
                 tagSelector.remove();
                 document.removeEventListener('click', closeOnClickOutside);
             }
@@ -2860,7 +1783,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function filterResultsByActiveTags() {
         const activeTags = getActiveTags();
         const searchInput = document.getElementById('search-input');
-        const query = searchInput.value.trim();
+        const query = searchInput ? searchInput.value.trim() : '';
         
         // Показываем индикатор загрузки
         const loadingIndicator = document.querySelector('.loading-indicator');
@@ -2869,12 +1792,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Устанавливаем таймаут, чтобы дать время на отображение индикатора загрузки
         setTimeout(() => {
             // Фильтруем пользователей по тегам
-            let filteredUsers = demoUsers;
+            let filteredUsers = users;
             
             if (activeTags.length > 0) {
-                filteredUsers = demoUsers.filter(user => {
+                filteredUsers = users.filter(user => {
                     // Если у пользователя есть хотя бы один из выбранных тегов, включаем его в результаты
-                    return user.interests.some(interest => activeTags.includes(interest));
+                    return user.interests && user.interests.some(interest => 
+                        activeTags.some(tag => 
+                            interest.toLowerCase().includes(tag.toLowerCase()) || 
+                            tag.toLowerCase().includes(interest.toLowerCase())
+                        )
+                    );
                 });
             }
             
@@ -2882,9 +1810,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (query) {
                 filteredUsers = filteredUsers.filter(user => {
                     return (
-                        user.name.toLowerCase().includes(query.toLowerCase()) ||
-                        user.location.toLowerCase().includes(query.toLowerCase()) ||
-                        user.interests.some(interest => interest.toLowerCase().includes(query.toLowerCase()))
+                        (user.name && user.name.toLowerCase().includes(query.toLowerCase())) ||
+                        (user.location && user.location.toLowerCase().includes(query.toLowerCase())) ||
+                        (user.interests && user.interests.some(interest => interest.toLowerCase().includes(query.toLowerCase())))
                     );
                 });
             }
@@ -2898,4 +1826,100 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ... existing code ...
+
+    // Загрузка дополнительных результатов
+    function loadMoreResults() {
+        // Получаем текущий запрос и теги
+        const query = searchInput.value.trim().toLowerCase();
+        const activeTags = getActiveTags();
+        
+        // Показываем индикатор загрузки
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'loading-indicator';
+        loadingIndicator.innerHTML = '<span></span><span></span><span></span>';
+        loadMoreButton.insertAdjacentElement('afterend', loadingIndicator);
+        loadMoreButton.style.display = 'none';
+        
+        // Имитируем время загрузки
+        setTimeout(() => {
+            // Получаем уже отображаемых пользователей
+            const displayedUsers = Array.from(document.querySelectorAll('.user-card')).map(card => {
+                return parseInt(card.getAttribute('data-id'));
+            });
+            
+            // Находим всех пользователей, которые подходят по запросу и тегам
+            let filteredUsers = [];
+            
+            if (activeTags.length > 0) {
+                // Если есть активные теги, фильтруем пользователей по ним
+                filteredUsers = users.filter(user => 
+                    activeTags.some(tag => 
+                        user.interests && user.interests.some(interest => 
+                            interest.toLowerCase().includes(tag.toLowerCase()) ||
+                            tag.toLowerCase().includes(interest.toLowerCase())
+                        )
+                    )
+                );
+            } else if (query) {
+                // Если нет активных тегов, но есть запрос, фильтруем по запросу
+                filteredUsers = users.filter(user => 
+                    (user.name && user.name.toLowerCase().includes(query.toLowerCase())) || 
+                    (user.location && user.location.toLowerCase().includes(query.toLowerCase())) ||
+                    (user.interests && user.interests.some(interest => interest.toLowerCase().includes(query.toLowerCase()))) ||
+                    (user.bio && user.bio.toLowerCase().includes(query.toLowerCase()))
+                );
+            } else {
+                // Если нет ни тегов, ни запроса, отображаем всех пользователей
+                filteredUsers = users;
+            }
+            
+            // Исключаем уже отображаемых пользователей
+            const remainingUsers = filteredUsers.filter(user => !displayedUsers.includes(user.id));
+            
+            // Определяем, сколько результатов показывать
+            const displayLimit = activeTags && activeTags.length > 0 ? 
+                maxDisplayResultsForTagMatch : maxDisplayResults;
+            
+            // Определяем следующую порцию пользователей
+            const nextUsers = remainingUsers.slice(0, displayLimit);
+            
+            // Удаляем индикатор загрузки
+            loadingIndicator.remove();
+            
+            // Удаляем все предыдущие сообщения о конце результатов, если они есть
+            const existingEndMessages = document.querySelectorAll('.end-of-results');
+            existingEndMessages.forEach(msg => msg.remove());
+            
+            if (nextUsers.length > 0) {
+                // Добавляем новые карточки пользователей
+                nextUsers.forEach(user => {
+                    const userCard = createUserCard(user, activeTags);
+                    resultsContainer.appendChild(userCard);
+                });
+                
+                // Если еще остались пользователи, оставляем кнопку "Загрузить еще"
+                if (remainingUsers.length > nextUsers.length) {
+                    loadMoreButton.style.display = 'block';
+                } else {
+                    // Добавляем сообщение о конце результатов
+                    const endOfResultsMessage = document.createElement('div');
+                    endOfResultsMessage.className = 'end-of-results';
+                    endOfResultsMessage.textContent = 'Все результаты загружены';
+                    loadMoreButton.insertAdjacentElement('afterend', endOfResultsMessage);
+                }
+            } else {
+                // Добавляем сообщение о конце результатов
+                const endOfResultsMessage = document.createElement('div');
+                endOfResultsMessage.className = 'end-of-results';
+                endOfResultsMessage.textContent = 'Все результаты загружены';
+                loadMoreButton.insertAdjacentElement('afterend', endOfResultsMessage);
+            }
+            
+            // Обновляем высоту контейнера, если необходимо
+            const resultsSection = document.getElementById('results-section');
+            if (resultsSection) {
+                resultsSection.style.height = 'auto';
+            }
+        }, 800); // Имитация задержки сети
+    }
 }); 

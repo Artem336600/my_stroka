@@ -40,10 +40,37 @@
                 <div class="search-container">
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" placeholder="Кого вы хотите найти?" id="search-input">
+                        <input type="text" placeholder="Кого вы хотите найти?" id="search-input" autofocus>
                         <div class="search-suggestions" id="search-suggestions"></div>
                     </div>
                 </div>
+                
+                <div class="popular-tags">
+                    <span class="tag-label">Популярные запросы:</span>
+                    <div class="tags-wrapper">
+                        <a href="#" class="search-tag" data-tag="Программирование">Программирование</a>
+                        <a href="#" class="search-tag" data-tag="Путешествия">Путешествия</a>
+                        <a href="#" class="search-tag" data-tag="Фотография">Фотография</a>
+                        <a href="#" class="search-tag" data-tag="Музыка">Музыка</a>
+                        <a href="#" class="search-tag" data-tag="Спорт">Спорт</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="people-results" id="results-section">
+        <div class="container">
+            <h2 class="section-title">Интересные люди для вас</h2>
+            <div id="no-results-message" style="display: none; text-align: center; margin: 2rem 0;">
+                <p>К сожалению, по вашему запросу ничего не найдено.</p>
+                <p>Попробуйте изменить запрос или выбрать другие теги.</p>
+            </div>
+            <div class="results-grid" id="results-container">
+                <!-- Результаты поиска будут добавлены с помощью JavaScript -->
+            </div>
+            <div class="load-more">
+                <button class="btn btn-outline btn-large" id="load-more">Показать больше</button>
             </div>
         </div>
     </section>
@@ -57,34 +84,22 @@
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </div>
                     <h3>Поиск</h3>
-                    <p>Введите интересующую вас тему или хобби в поисковую строку</p>
+                    <p>Введите интересующую вас тему или хобби в поисковую строку и найдите людей со схожими интересами</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <i class="fa-solid fa-filter"></i>
+                        <i class="fa-solid fa-sliders"></i>
                     </div>
                     <h3>Фильтрация</h3>
-                    <p>Уточните свой запрос с помощью фильтров и категорий</p>
+                    <p>Уточните свой запрос с помощью фильтров по категориям, местоположению и другим параметрам</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <i class="fa-solid fa-user-group"></i>
+                        <i class="fa-solid fa-comments"></i>
                     </div>
-                    <h3>Знакомство</h3>
-                    <p>Найдите людей с общими интересами и начните общение</p>
+                    <h3>Общение</h3>
+                    <p>Находите людей с общими интересами, начинайте общение и расширяйте круг единомышленников</p>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="people-results" id="results-section">
-        <div class="container">
-            <h2 class="section-title">Интересные люди для вас</h2>
-            <div class="results-grid" id="results-container">
-                <!-- Результаты поиска будут добавлены с помощью JavaScript -->
-            </div>
-            <div class="load-more">
-                <button class="btn btn-outline btn-large" id="load-more">Показать больше</button>
             </div>
         </div>
     </section>

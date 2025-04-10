@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STROKA - Поиск людей по интересам</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <span class="logo-text">STROKA</span>
+                <span class="logo-dot"></span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active">Главная</a></li>
+                    <li><a href="#">Категории</a></li>
+                    <li><a href="#">О нас</a></li>
+                    <li><a href="#">Контакты</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <a href="#" class="btn btn-outline" id="loginBtn">Войти</a>
+                <a href="#" class="btn btn-filled" id="registerBtn">Регистрация</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Найдите людей с общими интересами</h1>
+                <p>STROKA поможет вам найти единомышленников и интересных собеседников по любым темам и хобби</p>
+                
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Кого вы хотите найти?" id="search-input">
+                        <div class="search-suggestions" id="search-suggestions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Как это работает</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <h3>Поиск</h3>
+                    <p>Введите интересующую вас тему или хобби в поисковую строку</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-filter"></i>
+                    </div>
+                    <h3>Фильтрация</h3>
+                    <p>Уточните свой запрос с помощью фильтров и категорий</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-user-group"></i>
+                    </div>
+                    <h3>Знакомство</h3>
+                    <p>Найдите людей с общими интересами и начните общение</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="people-results" id="results-section">
+        <div class="container">
+            <h2 class="section-title">Интересные люди для вас</h2>
+            <div class="results-grid" id="results-container">
+                <!-- Результаты поиска будут добавлены с помощью JavaScript -->
+            </div>
+            <div class="load-more">
+                <button class="btn btn-outline btn-large" id="load-more">Показать больше</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="categories">
+        <div class="container">
+            <h2 class="section-title">Популярные категории</h2>
+            <div class="categories-grid">
+                <a href="#" class="category-card" data-category="art">
+                    <div class="category-icon"><i class="fa-solid fa-palette"></i></div>
+                    <h3>Искусство</h3>
+                    <p>3,240 человек</p>
+                </a>
+                <a href="#" class="category-card" data-category="technology">
+                    <div class="category-icon"><i class="fa-solid fa-microchip"></i></div>
+                    <h3>Технологии</h3>
+                    <p>5,678 человек</p>
+                </a>
+                <a href="#" class="category-card" data-category="sports">
+                    <div class="category-icon"><i class="fa-solid fa-basketball"></i></div>
+                    <h3>Спорт</h3>
+                    <p>4,590 человек</p>
+                </a>
+                <a href="#" class="category-card" data-category="music">
+                    <div class="category-icon"><i class="fa-solid fa-music"></i></div>
+                    <h3>Музыка</h3>
+                    <p>7,123 человек</p>
+                </a>
+                <a href="#" class="category-card" data-category="travel">
+                    <div class="category-icon"><i class="fa-solid fa-plane"></i></div>
+                    <h3>Путешествия</h3>
+                    <p>6,345 человек</p>
+                </a>
+                <a href="#" class="category-card" data-category="books">
+                    <div class="category-icon"><i class="fa-solid fa-book"></i></div>
+                    <h3>Книги</h3>
+                    <p>4,812 человек</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Расширьте свой круг общения</h2>
+                <p>Присоединяйтесь к сообществу STROKA и находите единомышленников по всему миру</p>
+                <a href="#" class="btn btn-filled btn-large" id="ctaRegisterBtn">Начать бесплатно</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-column">
+                    <div class="logo">
+                        <span class="logo-text">STROKA</span>
+                        <span class="logo-dot"></span>
+                    </div>
+                    <p>Платформа для поиска людей по интересам и хобби</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h4>О сервисе</h4>
+                    <ul>
+                        <li><a href="#">О нас</a></li>
+                        <li><a href="#">Наша команда</a></li>
+                        <li><a href="#">Блог</a></li>
+                        <li><a href="#">Карьера</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Поддержка</h4>
+                    <ul>
+                        <li><a href="#">Центр помощи</a></li>
+                        <li><a href="#">Безопасность</a></li>
+                        <li><a href="#">Связаться с нами</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Правовая информация</h4>
+                    <ul>
+                        <li><a href="#">Условия использования</a></li>
+                        <li><a href="#">Политика конфиденциальности</a></li>
+                        <li><a href="#">Cookies</a></li>
+                        <li><a href="#">Лицензии</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 STROKA. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="modal" id="filterModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Фильтры поиска</h3>
+                <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="filter-group">
+                    <h4>Категории интересов</h4>
+                    <div class="filter-options">
+                        <label><input type="checkbox"> Искусство</label>
+                        <label><input type="checkbox"> Технологии</label>
+                        <label><input type="checkbox"> Спорт</label>
+                        <label><input type="checkbox"> Музыка</label>
+                        <label><input type="checkbox"> Путешествия</label>
+                        <label><input type="checkbox"> Кулинария</label>
+                        <label><input type="checkbox"> Книги</label>
+                        <label><input type="checkbox"> Фотография</label>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <h4>Местоположение</h4>
+                    <select class="filter-select">
+                        <option value="">Любая страна</option>
+                        <option value="ru">Россия</option>
+                        <option value="ua">Украина</option>
+                        <option value="by">Беларусь</option>
+                        <option value="kz">Казахстан</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <h4>Возраст</h4>
+                    <div class="range-slider">
+                        <div class="range-values">
+                            <span>18</span>
+                            <span>65+</span>
+                        </div>
+                        <input type="range" min="18" max="65" value="18" class="range">
+                        <input type="range" min="18" max="65" value="65" class="range">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline">Сбросить</button>
+                <button class="btn btn-filled">Применить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Регистрация через Telegram</h3>
+                <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="telegram-auth-container">
+                    <div class="telegram-info">
+                        <div class="telegram-logo">
+                            <i class="fa-brands fa-telegram"></i>
+                        </div>
+                        <p>Авторизуйтесь через Telegram для быстрой регистрации без пароля.</p>
+                    </div>
+                    
+                    <div class="auth-steps">
+                        <div class="auth-step">
+                            <div class="step-number">1</div>
+                            <div class="step-info">
+                                <h4>Введите номер телефона</h4>
+                                <p>Мы отправим код подтверждения в ваш Telegram аккаунт</p>
+                            </div>
+                        </div>
+                        <div class="auth-step">
+                            <div class="step-number">2</div>
+                            <div class="step-info">
+                                <h4>Подтвердите в Telegram</h4>
+                                <p>Нажмите "Принять" в уведомлении Telegram</p>
+                            </div>
+                        </div>
+                        <div class="auth-step">
+                            <div class="step-number">3</div>
+                            <div class="step-info">
+                                <h4>Готово!</h4>
+                                <p>Вы будете автоматически авторизованы на сайте</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form id="telegramAuthForm">
+                        <div class="form-group">
+                            <label for="phoneNumber">Номер телефона</label>
+                            <div class="phone-input-container">
+                                <input type="tel" id="phoneNumber" placeholder="+7 (___) ___-__-__" required>
+                            </div>
+                        </div>
+                        <div class="form-group" id="confirmationBlock" style="display: none;">
+                            <div class="confirmation-info">
+                                <i class="fa-solid fa-circle-check confirmation-icon"></i>
+                                <p>Запрос на авторизацию отправлен в ваш Telegram.</p>
+                                <p>Пожалуйста, нажмите "Принять" в приложении Telegram.</p>
+                                <button type="button" class="btn btn-outline cancel-btn" id="cancelAuth">Отменить</button>
+                            </div>
+                        </div>
+                        <div class="form-footer">
+                            <button type="submit" class="btn btn-filled" id="sendAuthRequestBtn">Отправить запрос</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Успешная авторизация</h3>
+                <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="success-message">
+                    <i class="fa-solid fa-circle-check success-icon"></i>
+                    <h4>Добро пожаловать, <span id="successUserName">Пользователь</span>!</h4>
+                    <p>Вы успешно авторизовались на платформе STROKA через Telegram.</p>
+                    <p>Теперь вы можете пользоваться всеми возможностями сервиса.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-filled" id="continueBtn">Продолжить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно сообщений -->
+    <div class="modal" id="messagesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Сообщения</h3>
+                <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="messages-list">
+                    <div class="message-item unread">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Александр Петров" class="message-avatar">
+                        <div class="message-content">
+                            <div class="message-header">
+                                <div class="message-sender">Александр Петров</div>
+                                <div class="message-time">14:30</div>
+                            </div>
+                            <div class="message-text">Привет! Увидел, что вы тоже увлекаетесь фотографией. Хотел обсудить несколько интересных техник.</div>
+                        </div>
+                    </div>
+                    <div class="message-item unread">
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Елена Иванова" class="message-avatar">
+                        <div class="message-content">
+                            <div class="message-header">
+                                <div class="message-sender">Елена Иванова</div>
+                                <div class="message-time">Вчера</div>
+                            </div>
+                            <div class="message-text">Здравствуйте! Спасибо за заявку в друзья. Я заметила, что у нас похожие интересы - программирование и музыка.</div>
+                        </div>
+                    </div>
+                    <div class="message-item">
+                        <img src="https://randomuser.me/api/portraits/men/62.jpg" alt="Дмитрий Соколов" class="message-avatar">
+                        <div class="message-content">
+                            <div class="message-header">
+                                <div class="message-sender">Дмитрий Соколов</div>
+                                <div class="message-time">3 дня назад</div>
+                            </div>
+                            <div class="message-text">Привет! Планируется встреча по спортивным интересам в эту субботу. Ты присоединишься?</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="markAllReadBtn">Отметить все как прочитанные</button>
+                <button class="btn btn-filled" id="openMessengerBtn">Открыть мессенджер</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно уведомлений -->
+    <div class="modal" id="notificationsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Уведомления</h3>
+                <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="notifications-list">
+                    <div class="notification-item unread">
+                        <div class="notification-icon">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-text"><strong>Максим Волков</strong> добавил вас в друзья</div>
+                            <div class="notification-time">2 часа назад</div>
+                        </div>
+                        <div class="notification-actions">
+                            <button class="btn btn-small btn-filled">Принять</button>
+                            <button class="btn btn-small btn-outline">Отклонить</button>
+                        </div>
+                    </div>
+                    <div class="notification-item unread">
+                        <div class="notification-icon">
+                            <i class="fa-solid fa-calendar-check"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-text">Новое мероприятие: <strong>Встреча фотографов Москвы</strong></div>
+                            <div class="notification-time">5 часов назад</div>
+                        </div>
+                        <div class="notification-actions">
+                            <button class="btn btn-small btn-outline">Подробнее</button>
+                        </div>
+                    </div>
+                    <div class="notification-item">
+                        <div class="notification-icon">
+                            <i class="fa-solid fa-heart"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-text"><strong>Анна Морозова</strong> оценила ваш профиль</div>
+                            <div class="notification-time">Вчера</div>
+                        </div>
+                    </div>
+                    <div class="notification-item">
+                        <div class="notification-icon">
+                            <i class="fa-solid fa-comment"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-text"><strong>Ольга Смирнова</strong> оставила комментарий к вашей записи</div>
+                            <div class="notification-time">2 дня назад</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="clearNotificationsBtn">Очистить все</button>
+                <button class="btn btn-filled" id="markAllNotifReadBtn">Отметить прочитанными</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="telegram-auth-service.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
